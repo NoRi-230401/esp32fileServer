@@ -21,24 +21,49 @@ const String GITHUB_URL = "https://github.com/NoRi-230401/esp32fileServer";
 const String WIFI_TXT = "/wifi.txt";
 const String YOUR_SSID = "";
 const String YOUR_SSID_PASS = "";
-const String YOUR_HOST_NAME = "";
-//---------------------------------------------------------------------------
-#ifdef LITTLEFS_USE
-  const bool LittleFS_USE = true; // (default) LittleFS instead of SPIFFS
-  const bool SPIFFS_USE = false;
+const String YOUR_HOST_NAME = "esp32fileServer";
+#ifdef M5STACK_DEVICE
+bool RTC_ADJUST_ON = true; // 'false' if don't adjust RTC
 #else
-  const bool LittleFS_USE = false; // (default) LittleFS instead of SPIFFS
-  const bool SPIFFS_USE = true;
+bool RTC_ADJUST_ON = false; // 'false' if don't adjust RTC
 #endif
-  const bool SD_USE = false;
-
+//---------------------------------------------------------------------------
+#ifdef FILES_LITTLEFS
+const bool LittleFS_USE = true; // (default) LittleFS instead of SPIFFS
+const bool SPIFFS_USE = false;
+#else
+const bool LittleFS_USE = false; // (default) LittleFS instead of SPIFFS
+const bool SPIFFS_USE = true;
+#endif
+#ifdef FILES_SD
+const bool SD_USE = true;
+#else
+const bool SD_USE = false;
+#endif
 
 void setup()
 {
+#ifdef M5STACK_DEVICE
+  m5stack_begin();
+#ifdef DEBUG_PLATFORMIO
+  delay(5000);
+#endif
+
+  if (SD_ENABLE)
+  { // M5stack-SD-Updater lobby
+    SDU_lobby();
+    SD.end();
+  }
+  if (SD_USE)
+    SD_start();
+#else
   Serial.begin(115200);
 #ifdef DEBUG_PLATFORMIO
   delay(5000);
 #endif
+
+#endif
+
   prtln("- " + PROG_NAME + " -");
 
   if (LittleFS_USE)
@@ -64,7 +89,7 @@ void setup()
   if (!setupServer())
     STOP();
 
-  prtln("*** setup() done! ***") ;
+  prtln("*** setup() done! ***");
 }
 
 void loop()

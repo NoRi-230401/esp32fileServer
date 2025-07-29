@@ -17,11 +17,8 @@ bool wifiStart();
 bool wifiConnect01();
 bool wifiConnect02();
 bool wifiConnect03();
-
 bool mdnsStart(void);
-// void adjustRTC();
 String getTmNTP();
-// String getTmRTC();
 String strTmInfo(struct tm &timeInfo);
 bool getWiFiSettings(int flType, const String filename);
 String urlEncode(const String &input);
@@ -30,14 +27,11 @@ void requestManage();
 void sendReq(int reqNo);
 void STOP();
 void REBOOT();
-// void POWER_OFF();
 bool SPIFFS_begin();
 void SPIFFS_start();
 bool SD_begin();
 void SD_start();
 bool SD_cardInfo(void);
-// void m5stack_begin();
-// void SDU_lobby();
 bool getSSIDInfo();
 
 // -------------------------------------------------------
@@ -562,21 +556,6 @@ void REBOOT()
   }
 }
 
-// void POWER_OFF()
-// {
-//   Serial.println(" *** POWER OFF ***");
-
-//   SD.end();
-//   SPIFFS.end();
-//   delay(SHUTDOWN_TM_SEC * 1000L);
-//   // M5.Power.powerOff();
-
-//   for (;;)
-//   { // never
-//     delay(1000);
-//   }
-// }
-
 bool SPIFFS_begin()
 {
   if (!SPIFFS.begin(true))
@@ -623,36 +602,6 @@ void LittleFS_start()
   }
 }
 
-// SPIClass SPI2;
-bool SD_begin()
-{
-  return false;
-
-  int i = 0;
-
-#if defined(CARDPUTER)
-  // ------------- CARDPUTER -------------
-  while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2) && i < 10)
-#else
-  // ----------- Core2 and CoreS3 ----------
-  while (!SD.begin(GPIO_NUM_4, SPI, 25000000) && i < 10)
-#endif
-  {
-    delay(500);
-    i++;
-  }
-
-  if (i >= 10)
-  {
-    Serial.println("ERR: SD begin erro...");
-    return false;
-  }
-
-  if (!SD_cardInfo())
-    return false;
-
-  return true;
-}
 
 void SD_start()
 {

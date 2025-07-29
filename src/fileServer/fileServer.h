@@ -32,6 +32,14 @@ extern bool setupServer();
 extern void requestManage();
 extern void STOP();
 //---------------------------
+extern void adjustRTC();
+extern String getTmRTC();
+extern void POWER_OFF();
+extern void m5stack_begin();
+extern void SDU_lobby();
+extern bool SD_begin();
+extern bool SD_cardInfo(void);
+extern String strTmInfo(struct tm &timeInfo);
 
 typedef struct
 {
