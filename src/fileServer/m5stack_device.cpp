@@ -17,6 +17,9 @@ void POWER_OFF();
 bool SD_begin();
 void m5stack_begin();
 void SDU_lobby();
+void prt(String message);
+void prtln(String message);
+
 // -------------------------------------------------------
 
 void adjustRTC()
@@ -27,7 +30,7 @@ void adjustRTC()
     delay(10);
 
   M5.Rtc.setDateTime(tmInfo);
-  prtln("\nRTC adjusted .... " + strTmInfo(tmInfo));
+  dbPrtln("\nRTC adjusted .... " + strTmInfo(tmInfo));
 }
 
 String getTmRTC()
@@ -59,10 +62,7 @@ void POWER_OFF()
 
 bool SD_begin()
 {
-  return false;
-
   int i = 0;
-
 #if defined(CARDPUTER)
   // ------------- CARDPUTER -------------
   while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2) && i < 10)
@@ -87,6 +87,8 @@ bool SD_begin()
   return true;
 }
 
+// vsCode terminal cannot get serial data before 5 sec...!
+#define DEBUG_PLATFORMIO
 void m5stack_begin()
 {
   auto cfg = M5.config();
@@ -123,7 +125,9 @@ void m5stack_begin()
   M5.Display.setCursor(0, 0);
 
 #endif
-
+#ifdef DEBUG_PLATFORMIO
+  delay(5000);
+#endif
   SD_ENABLE = SD_begin();
 }
 
@@ -163,6 +167,29 @@ void SDU_lobby()
   M5.Display.fillScreen(TFT_BLACK);
   M5.Display.setCursor(0, 0);
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+#endif
+}
+
+
+void prtln(String message)
+{
+  Serial.println(message);
+
+#ifdef CARDPUTER
+  M5Cardputer.Display.println(message);
+#else
+  M5.Display.println(message);
+#endif
+}
+
+void prt(String message)
+{
+  Serial.print(message);
+
+#ifdef CARDPUTER
+  M5Cardputer.Display.print(message);
+#else
+  M5.Display.print(message);
 #endif
 }
 

@@ -22,8 +22,11 @@
 
 // --- used in 'main.cpp' ---- 
 extern void m5stack_begin();
-extern void prtln(String message);
+extern void dbPrtln(String message);
+extern void dbPrt(String message);
 extern void prt(String message);
+extern void prtln(String message);
+
 extern void SDU_lobby();
 extern void SD_start();
 extern void LittleFS_start();

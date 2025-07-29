@@ -6,8 +6,6 @@
 #include "fileServer/fileServer.h"
 
 //-------------------------------------------
-// vsCode terminal cannot get serial data before 5 sec...!
-#define DEBUG_PLATFORMIO
 
 const String PROG_NAME = "esp32fileServer";
 const String VERSION = "v1.04";
@@ -41,19 +39,16 @@ const bool SD_USE = true;
 const bool SD_USE = false;
 #endif
 
+// vsCode terminal cannot get serial data before 5 sec...!
+#define DEBUG_PLATFORMIO
+
 void setup()
 {
 #ifdef M5STACK_DEVICE
   m5stack_begin();
-#ifdef DEBUG_PLATFORMIO
-  delay(5000);
-#endif
-
   if (SD_ENABLE)
-  { // M5stack-SD-Updater lobby
     SDU_lobby();
-    SD.end();
-  }
+
   if (SD_USE)
     SD_start();
 #else
@@ -61,10 +56,9 @@ void setup()
 #ifdef DEBUG_PLATFORMIO
   delay(5000);
 #endif
-
 #endif
 
-  prtln("- " + PROG_NAME + " -");
+  dbPrtln("- " + PROG_NAME + " -");
 
   if (LittleFS_USE)
     LittleFS_start();
@@ -75,10 +69,11 @@ void setup()
   {
     IP_ADDR = WiFi.localIP().toString();
     SSID = WiFi.SSID();
-    prtln("\n*** Connected ***");
-    prtln("IP_ADDR = " + IP_ADDR);
-    prtln("SSID = " + SSID);
-    prtln("WiFi    .....  OK");
+    prt("\n");
+    dbPrtln("*** Connected ***");
+    prtln("IP: " + IP_ADDR);
+    dbPrtln("SSID:" + SSID);
+    dbPrtln("WiFi    .....  OK");
   }
   else
   {
@@ -89,7 +84,7 @@ void setup()
   if (!setupServer())
     STOP();
 
-  prtln("*** setup() done! ***");
+  dbPrtln("*** setup() done! ***");
 }
 
 void loop()

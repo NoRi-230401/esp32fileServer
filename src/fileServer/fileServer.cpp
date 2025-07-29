@@ -47,7 +47,7 @@ extern void LFdir_flserverSetup();
 // -------------------------------------------------------
 
 String SSID, SSID_PASS, IP_ADDR;
-String HOST_NAME = "esp32FilServer";
+String HOST_NAME;
 bool SD_ENABLE, LittleFS_ENABLE,SPIFFS_ENABLE;
 const String HOME_IMG = "/homeImg.gif";
 
@@ -84,12 +84,9 @@ bool setupServer()
     return false;
   }
   prtln("fileServer ..  OK");
-  // prtln("HOST_NAME = " + HOST_NAME);
   TM_SETUP_DONE = millis();
   return true;
 }
-
-
 
 String HTML_Header()
 {
@@ -747,9 +744,9 @@ void Display_System_Info()
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
 
-  // if (RTC_ENABLE)
-  //   webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
-  // else
+  if (RTC_ENABLE)
+    webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
+  else
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>　**　disable　**　</td></tr>";
 
   webpage += "<tr><td>Sync with NTP server</td><td>" + getTmNTP() + "</td></tr>";
@@ -762,8 +759,6 @@ void Display_System_Info()
 
 bool fileServerStart()
 {
-  // Serial.println(__FILE__);
-
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             {
   Serial.println("Home Page...");
