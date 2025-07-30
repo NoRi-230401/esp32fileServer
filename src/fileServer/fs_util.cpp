@@ -5,6 +5,8 @@
 // *******************************************************
 #include "fileServer.h"
 
+void prt(String message);
+void prtln(String message);
 void dbPrtln(String message);
 void dbPrt(String message);
 String ConvBytesUnits(uint64_t bytes, int dp, int unit);
@@ -46,7 +48,30 @@ void dbPrt(String message)
   Serial.print(message);
 #endif
 }
+void prtln(String message)
+{
+  Serial.println(message);
 
+#ifdef M5STACK_DEVICE
+#ifdef CARDPUTER
+  M5Cardputer.Display.println(message);
+#else
+  M5.Display.println(message);
+#endif
+#endif
+}
+
+void prt(String message)
+{
+  Serial.print(message);
+#ifdef M5STACK_DEVICE
+#ifdef CARDPUTER
+  M5Cardputer.Display.print(message);
+#else
+  M5.Display.print(message);
+#endif
+#endif
+}
 
 String ConvBytesUnits(uint64_t bytes, int dp, int unit)
 { // int dp : 小数点以下の桁数、decimal places

@@ -28,7 +28,7 @@ uint32_t SPIFFS_numfiles;
 
 void SPIFFS_flServerSetup()
 {
-  Serial.println(__FILE__);
+  // Serial.println(__FILE__);
 
   server.on("/SPIFFS_download", HTTP_GET, [](AsyncWebServerRequest *request)
             {

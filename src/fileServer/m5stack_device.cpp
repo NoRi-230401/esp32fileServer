@@ -4,10 +4,8 @@
 #ifdef M5STACK_DEVICE
 //-------------------------------------------------------------
 #include "fileServer.h"
-#include <M5Unified.h>
 #include <M5StackUpdater.h>
 #if defined(CARDPUTER)
-#include <M5Cardputer.h>
 SPIClass SPI2;
 #endif
 
@@ -17,8 +15,6 @@ void POWER_OFF();
 bool SD_begin();
 void m5stack_begin();
 void SDU_lobby();
-void prt(String message);
-void prtln(String message);
 
 // -------------------------------------------------------
 
@@ -30,7 +26,8 @@ void adjustRTC()
     delay(10);
 
   M5.Rtc.setDateTime(tmInfo);
-  dbPrtln("\nRTC adjusted .... " + strTmInfo(tmInfo));
+  prtln("RTC adjusted");
+  dbPrtln(strTmInfo(tmInfo));
 }
 
 String getTmRTC()
@@ -88,7 +85,7 @@ bool SD_begin()
 }
 
 // vsCode terminal cannot get serial data before 5 sec...!
-#define DEBUG_PLATFORMIO
+// #define DEBUG_PLATFORMIO
 void m5stack_begin()
 {
   auto cfg = M5.config();
@@ -101,9 +98,10 @@ void m5stack_begin()
   M5Cardputer.Display.setRotation(1);
   M5Cardputer.Display.fillScreen(TFT_BLACK);
   M5Cardputer.Display.setTextColor(TFT_WHITE, TFT_BLACK);
-  M5Cardputer.Display.setFont(&fonts::Font0);
-  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.setFont(&fonts::lgfxJapanGothic_20); // japanese font
+  M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextWrap(false);
+  M5Cardputer.Display.setTextScroll(true);
   M5Cardputer.Display.setCursor(0, 0);
 
   SPI2.begin(
@@ -119,9 +117,10 @@ void m5stack_begin()
   M5.Display.setRotation(1);
   M5.Display.fillScreen(TFT_BLACK);
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
-  M5.Display.setFont(&fonts::Font0);
-  M5.Display.setTextSize(2);
+  M5.Display.setFont(&fonts::lgfxJapanGothic_20); // japanese font
+  M5.Display.setTextSize(1);
   M5.Display.setTextWrap(false);
+  M5.Display.setTextScroll(true);
   M5.Display.setCursor(0, 0);
 
 #endif
@@ -142,9 +141,9 @@ void SDU_lobby()
   // CoreS3 は、最初からBtnAを押していると認識しないのでメッセージ表示後に押下する
   // Core2 と Cardputer は、最初から BtnA or 'a' を押していればいい。
 #ifdef CORES3
-  M5.Display.setCursor(0, M5.Display.height() / 2 - 30);
+  //   M5.Display.setCursor(0, M5.Display.height() / 2 - 30);
   M5.Display.setTextColor(GREEN);
-  disp("  Press BtnA to load menu");
+  M5.Display.drawCenterString("Press BtnA to load menu", M5.Display.width() / 2, M5.Display.height() / 2);
   delay(3000);
 #endif
 
@@ -170,30 +169,4 @@ void SDU_lobby()
 #endif
 }
 
-
-void prtln(String message)
-{
-  Serial.println(message);
-
-#ifdef CARDPUTER
-  M5Cardputer.Display.println(message);
-#else
-  M5.Display.println(message);
-#endif
-}
-
-void prt(String message)
-{
-  Serial.print(message);
-
-#ifdef CARDPUTER
-  M5Cardputer.Display.print(message);
-#else
-  M5.Display.print(message);
-#endif
-}
-
-
-#endif  // M5STACK_DEVICE
-
-
+#endif // M5STACK_DEVICE

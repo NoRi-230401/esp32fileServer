@@ -43,7 +43,7 @@ String SdPath = "/";
 
 void SD_flServerSetup()
 {
-  Serial.println(__FILE__);
+  // Serial.println(__FILE__);
 
   server.on("/SD_download", HTTP_GET, [](AsyncWebServerRequest *request)
             {

@@ -78,6 +78,19 @@ bool setupServer()
   // NTP Server config
   configTime(NTP_GMT_OFFSET, NTP_DAYLIGHT_OFFSET, NTP_SVR1, NTP_SVR2);
 
+  // check RTC enable
+#ifdef M5STACK_DEVICE
+  if (RTC_ENABLE = M5.Rtc.isEnabled())
+  {
+    dbPrtln("RTC is enable");
+  }
+  else
+  {
+    dbPrtln("RTC is disable");
+    RTC_ADJUST_ON = false;
+  }
+#endif
+
   if (!fileServerStart())
   {
     prtln("fileServer ..  NG");
@@ -744,10 +757,12 @@ void Display_System_Info()
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
 
+  #ifdef M5STACK_DEVICE
   if (RTC_ENABLE)
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
   else
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>　**　disable　**　</td></tr>";
+  #endif
 
   webpage += "<tr><td>Sync with NTP server</td><td>" + getTmNTP() + "</td></tr>";
   webpage += "</table> ";
