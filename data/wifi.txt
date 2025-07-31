@@ -1,3 +1,3 @@
-aterm-d5c4c3-g
-86c71a78ea6e1
-stackchan
+YOUR_SSID
+YOUR_SSID_PASS
+YOUR_HOST_NAME
