@@ -1,5 +1,5 @@
 // *******************************************************
-//  m5stack-fileServer          by NoRi 2025-04-15
+//  esp32fileServer          by NoRi 2025-08-01
 // -------------------------------------------------------
 // SPIFFS_handler.cpp
 // *******************************************************
@@ -28,7 +28,7 @@ uint32_t SPIFFS_numfiles;
 
 void SPIFFS_flServerSetup()
 {
-  Serial.println(__FILE__);
+  // Serial.println(__FILE__);
 
   server.on("/SPIFFS_download", HTTP_GET, [](AsyncWebServerRequest *request)
             {

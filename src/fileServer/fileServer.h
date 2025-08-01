@@ -1,5 +1,5 @@
 // *******************************************************
-//  m5stack-fileServer          by NoRi 2025-04-15
+//  esp32fileServer          by NoRi 2025-08-01
 // -------------------------------------------------------
 // fileServer.h
 // *******************************************************
@@ -14,16 +14,26 @@
 #include <algorithm>
 #include <vector>
 #include <FS.h>
-#include <LittleFS.h> 
+#include <LittleFS.h>
 #include <SPIFFS.h>
 #include <SD.h>
 #include <nvs.h>
 #include <time.h>
+#ifdef M5STACK_DEVICE
+#ifndef CARDPUTER
+  #include <M5Unified.h>
+#else
+  #include <M5Cardputer.h>
+#endif
+#endif
 
-// --- used in 'main.cpp' ---- 
+// --- used in 'main.cpp' ----
 extern void m5stack_begin();
-extern void prtln(String message);
+extern void dbPrtln(String message);
+extern void dbPrt(String message);
 extern void prt(String message);
+extern void prtln(String message);
+
 extern void SDU_lobby();
 extern void SD_start();
 extern void LittleFS_start();
@@ -32,6 +42,14 @@ extern bool setupServer();
 extern void requestManage();
 extern void STOP();
 //---------------------------
+extern void adjustRTC();
+extern String getTmRTC();
+extern void POWER_OFF();
+extern void m5stack_begin();
+extern void SDU_lobby();
+extern bool SD_begin();
+extern bool SD_cardInfo(void);
+extern String strTmInfo(struct tm &timeInfo);
 
 typedef struct
 {
@@ -75,7 +93,7 @@ extern void webApiSetup();
 extern void sendReq(int reqNo);
 
 // -------------------------------------------------------
-extern const String PROG_NAME,VERSION,GITHUB_URL;
+extern const String PROG_NAME, VERSION, GITHUB_URL;
 extern const String YOUR_SSID, YOUR_SSID_PASS, YOUR_HOST_NAME;
 extern String SSID, SSID_PASS, HOST_NAME, IP_ADDR;
 
@@ -83,7 +101,7 @@ extern const String WIFI_TXT;
 extern const bool SD_USE, SPIFFS_USE, LittleFS_USE;
 extern bool SD_ENABLE, LittleFS_ENABLE, SPIFFS_ENABLE;
 extern bool RTC_ENABLE;
-extern String SdPath,LfPath;
+extern String SdPath, LfPath;
 
 extern bool RTC_ADJUST_ON;
 extern uint32_t TM_SETUP_DONE;

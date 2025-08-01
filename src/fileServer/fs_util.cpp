@@ -1,27 +1,21 @@
 // *******************************************************
-//  m5stack-fileServer          by NoRi 2025-04-15
+//  esp32fileServer          by NoRi 2025-08-01
 // -------------------------------------------------------
 // fs_util.cpp
 // *******************************************************
 #include "fileServer.h"
-// // #include <M5StackUpdater.h>
-// #if defined(CARDPUTER)
-// #include <M5Cardputer.h>
-// SPIClass SPI2;
-// #endif
 
-void prtln(String message);
 void prt(String message);
+void prtln(String message);
+void dbPrtln(String message);
+void dbPrt(String message);
 String ConvBytesUnits(uint64_t bytes, int dp, int unit);
 bool wifiStart();
 bool wifiConnect01();
 bool wifiConnect02();
 bool wifiConnect03();
-
 bool mdnsStart(void);
-// void adjustRTC();
 String getTmNTP();
-// String getTmRTC();
 String strTmInfo(struct tm &timeInfo);
 bool getWiFiSettings(int flType, const String filename);
 String urlEncode(const String &input);
@@ -30,31 +24,52 @@ void requestManage();
 void sendReq(int reqNo);
 void STOP();
 void REBOOT();
-// void POWER_OFF();
 bool SPIFFS_begin();
 void SPIFFS_start();
 bool SD_begin();
 void SD_start();
 bool SD_cardInfo(void);
-// void m5stack_begin();
-// void SDU_lobby();
-bool getSSIDInfo();
+bool getWiFiInfo();
 
 // -------------------------------------------------------
 uint32_t SHUTDOWN_TM_SEC = 3; // default 3sec after shutdown api
 int REQUEST_NO = REQ_NONE;
 
 #define DEBUG2
-void prtln(String message)
+void dbPrtln(String message)
 {
 #ifdef DEBUG2
   Serial.println(message);
 #endif
 }
-void prt(String message)
+void dbPrt(String message)
 {
 #ifdef DEBUG2
   Serial.print(message);
+#endif
+}
+void prtln(String message)
+{
+  Serial.println(message);
+
+#ifdef M5STACK_DEVICE
+#ifdef CARDPUTER
+  M5Cardputer.Display.println(message);
+#else
+  M5.Display.println(message);
+#endif
+#endif
+}
+
+void prt(String message)
+{
+  Serial.print(message);
+#ifdef M5STACK_DEVICE
+#ifdef CARDPUTER
+  M5Cardputer.Display.print(message);
+#else
+  M5.Display.print(message);
+#endif
 #endif
 }
 
@@ -118,10 +133,10 @@ String ConvBytesUnits(uint64_t bytes, int dp, int unit)
 
 bool wifiStart()
 {
-  prtln("*** WiFi Start ***");
+  dbPrtln("*** WiFi Start ***");
 
   // "wifi.txt" info at LittleFS, SPIFFS, SD
-  if (getSSIDInfo())
+  if (getWiFiInfo())
   {
     if (wifiConnect01())
       return true;
@@ -140,13 +155,13 @@ bool wifiStart()
 
 bool wifiConnect01()
 {
-  prtln("use wifi.txt info");
+  dbPrtln("use wifi.txt info");
   WiFi.disconnect();
   WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_STA);
   delay(500);
   WiFi.begin(SSID, SSID_PASS);
-  prt(".");
+  prt("*");
   int count = 1;
   const int COUNT_MAX = 20;
   delay(500);
@@ -154,11 +169,11 @@ bool wifiConnect01()
   while (WiFi.status() != WL_CONNECTED)
   {
     count++;
-    prt(".");
+    prt("*");
     delay(500);
     if (count >= COUNT_MAX)
     {
-      prtln("\ncannot connect ,Wifi faile!");
+      dbPrtln("\ncannot connect ,Wifi faile!");
       return false;
     }
   }
@@ -168,19 +183,20 @@ bool wifiConnect01()
 bool wifiConnect02()
 {
   // privious connected wifi-info use
-  prtln("\nprivious connected wifi-info use"); 
+  dbPrtln("\nprivious connected wifi-info use");
   WiFi.disconnect();
   WiFi.begin();
+  prtln("\n");
 
   int loopCount10sec = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
-    prt(".");
+    prt("*");
     delay(500);
     // 10秒以上接続できなかったら false
     if (loopCount10sec++ > 10 * 2)
     {
-      prtln("\nPrivious connect info use ,Wifi faile!");
+      dbPrtln("\nPrivious connect info use ,Wifi faile!");
       return false;
     }
   }
@@ -190,13 +206,13 @@ bool wifiConnect02()
 bool wifiConnect03()
 { // ** ESP SmartConfig  ***
   // ---------------------------------------
-  //Init WiFi as Station, begin SmartConfig
+  // Init WiFi as Station, begin SmartConfig
   WiFi.mode(WIFI_AP_STA);
   WiFi.beginSmartConfig();
   // ---------------------------------------
   int loopCount30sec = 0;
-  //Wait for SmartConfig packet from mobile
-  prtln("\nWaiting for SmartConfig packet");
+  // Wait for SmartConfig packet from mobile
+  dbPrtln("\nWaiting for SmartConfig packet");
   while (!WiFi.smartConfigDone())
   {
     delay(500);
@@ -205,20 +221,21 @@ bool wifiConnect03()
     // 60秒以上 smartConfigDoneできなかったら false
     if (loopCount30sec++ > 30 * 4)
     {
-      prtln("\nSmartConfig not recieved ,Wifi faile!");
+      dbPrtln("\nSmartConfig not recieved ,Wifi faile!");
       return false;
     }
   }
-  prtln("\nSmartConfig packet received.");
+  dbPrtln("\nSmartConfig packet received.");
 
   // ---------------------------------------
-  //Wait for WiFi to connect to AP
-    prtln("\nWaiting for WiFi");
+  // Wait for WiFi to connect to AP
+  dbPrtln("\nWaiting for WiFi");
+  prtln("\n");
   int loopCount60sec = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
-    prt(".");
+    prt("*");
     // 60秒以上接続できなかったら false
     if (loopCount60sec++ > 60 * 2)
     {
@@ -240,29 +257,6 @@ bool mdnsStart(void)
   Serial.println("mDNS ServerName = " + HOST_NAME);
   return true;
 }
-
-// void adjustRTC()
-// {
-//   struct tm tmInfo;
-
-//   while (!getLocalTime(&tmInfo, 1000U))
-//     delay(10);
-
-//   M5.Rtc.setDateTime(tmInfo);
-//   prtln("\nRTC adjusted .... " + strTmInfo(tmInfo));
-// }
-
-// String getTmRTC()
-// {
-//   char buf[60];
-//   static constexpr const char *const wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
-//   auto dt = M5.Rtc.getDateTime();
-//   sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.date.year, dt.date.month, dt.date.date, wd[dt.date.weekDay], dt.time.hours, dt.time.minutes, dt.time.seconds);
-
-//   return String(buf);
-
-//   return "";
-// }
 
 String getTmNTP()
 {
@@ -326,7 +320,7 @@ bool getWiFiSettings(int flType, const String filename)
   }
   else
   {
-    prtln("getWiFiSettings Err: invalid flType");
+    dbPrtln("getWiFiSettings Err: invalid flType");
     return false;
   }
 
@@ -356,13 +350,10 @@ bool getWiFiSettings(int flType, const String filename)
     return false;
   SSID = String(buf);
   SSID_PASS = String(&buf[y]);
-  // prtln("SSID        = " + SSID);
-  // prtln("SSID_PASS   = " + SSID_PASS);
 
   if (z == 0)
     return false;
   HOST_NAME = String(&buf[z]);
-  // prtln("HOST_NAME = " + HOST_NAME);
 
   if (SSID == "" || SSID_PASS == "" || HOST_NAME == "")
     return false;
@@ -562,21 +553,6 @@ void REBOOT()
   }
 }
 
-// void POWER_OFF()
-// {
-//   Serial.println(" *** POWER OFF ***");
-
-//   SD.end();
-//   SPIFFS.end();
-//   delay(SHUTDOWN_TM_SEC * 1000L);
-//   // M5.Power.powerOff();
-
-//   for (;;)
-//   { // never
-//     delay(1000);
-//   }
-// }
-
 bool SPIFFS_begin()
 {
   if (!SPIFFS.begin(true))
@@ -617,41 +593,10 @@ void LittleFS_start()
   {
     LittleFS_ENABLE = LittleFS_begin();
     if (LittleFS_ENABLE)
-      prtln("LittleFS  .....  OK");
+      prtln("LittleFS ....  OK");
     else
-      prtln("LittleFS  .....  NG");
+      prtln("LittleFS ....  NG");
   }
-}
-
-// SPIClass SPI2;
-bool SD_begin()
-{
-  return false;
-
-  int i = 0;
-
-#if defined(CARDPUTER)
-  // ------------- CARDPUTER -------------
-  while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2) && i < 10)
-#else
-  // ----------- Core2 and CoreS3 ----------
-  while (!SD.begin(GPIO_NUM_4, SPI, 25000000) && i < 10)
-#endif
-  {
-    delay(500);
-    i++;
-  }
-
-  if (i >= 10)
-  {
-    Serial.println("ERR: SD begin erro...");
-    return false;
-  }
-
-  if (!SD_cardInfo())
-    return false;
-
-  return true;
 }
 
 void SD_start()
@@ -693,100 +638,21 @@ bool SD_cardInfo(void)
   return true;
 }
 
-// void m5stack_begin()
-// {
-//   auto cfg = M5.config();
-//   cfg.serial_baudrate = 115200;
-
-// #if defined(CARDPUTER)
-//   // ------------- CARDPUTER ---------------
-//   M5Cardputer.begin(cfg, true);
-//   M5Cardputer.Display.setBrightness(70);
-//   M5Cardputer.Display.setRotation(1);
-//   M5Cardputer.Display.fillScreen(TFT_BLACK);
-//   M5Cardputer.Display.setTextColor(TFT_WHITE, TFT_BLACK);
-//   M5Cardputer.Display.setFont(&fonts::Font0);
-//   M5Cardputer.Display.setTextSize(2);
-//   M5Cardputer.Display.setTextWrap(false);
-//   M5Cardputer.Display.setCursor(0, 0);
-
-//   SPI2.begin(
-//       M5.getPin(m5::pin_name_t::sd_spi_sclk),
-//       M5.getPin(m5::pin_name_t::sd_spi_miso),
-//       M5.getPin(m5::pin_name_t::sd_spi_mosi),
-//       M5.getPin(m5::pin_name_t::sd_spi_ss));
-
-// #else
-//   // ----------- Core2 and CoreS3 ----------
-//   M5.begin(cfg);
-//   M5.Display.setBrightness(120);
-//   M5.Display.setRotation(1);
-//   M5.Display.fillScreen(TFT_BLACK);
-//   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
-//   M5.Display.setFont(&fonts::Font0);
-//   M5.Display.setTextSize(2);
-//   M5.Display.setTextWrap(false);
-//   M5.Display.setCursor(0, 0);
-
-// #endif
-
-//   SD_ENABLE = SD_begin();
-// }
-
-// ------------------------------------------
-// SDU_lobby : SD_uploader lobby
-// ------------------------------------------
-// load "/menu.bin" on SD
-//    if 'a' or 'BtnA' pressed at booting
-// ------------------------------------------
-// void SDU_lobby()
-// {
-//   // CoreS3 は、最初からBtnAを押していると認識しないのでメッセージ表示後に押下する
-//   // Core2 と Cardputer は、最初から BtnA or 'a' を押していればいい。
-// #ifdef CORES3
-//   M5.Display.setCursor(0, M5.Display.height() / 2 - 30);
-//   M5.Display.setTextColor(GREEN);
-//   disp("  Press BtnA to load menu");
-//   delay(3000);
-// #endif
-
-// #if defined(CARDPUTER)
-//   M5Cardputer.update();
-//   if (M5Cardputer.Keyboard.isKeyPressed('a'))
-// #else
-//   M5.update();
-//   if (M5.BtnA.isPressed())
-// #endif
-//   {
-//     updateFromFS(SD, "/menu.bin");
-//     ESP.restart();
-
-//     while (true)
-//       ;
-//   }
-
-// #ifdef CORES3
-//   M5.Display.fillScreen(TFT_BLACK);
-//   M5.Display.setCursor(0, 0);
-//   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
-// #endif
-// }
-
-bool getSSIDInfo()
+bool getWiFiInfo()
 {
   // ------- Network Settings Read ---------
   SSID = "";
   SSID_PASS = "";
   HOST_NAME = "";
 
-  if (LittleFS_ENABLE && getWiFiSettings(FS_LittleFS, WIFI_TXT))
+  if (SD_ENABLE && getWiFiSettings(FS_SD, WIFI_TXT))
+    Serial.println("Settings read from SD");
+
+  else if (LittleFS_ENABLE && getWiFiSettings(FS_LittleFS, WIFI_TXT))
     Serial.println("Settings read from LittleFS");
 
   else if (SPIFFS_ENABLE && getWiFiSettings(FS_SPIFFS, WIFI_TXT))
     Serial.println("Settings read from SPIFFS");
-
-  else if (SD_ENABLE && getWiFiSettings(FS_SD, WIFI_TXT))
-    Serial.println("Settings read from SD");
 
   if (SSID == "")
     SSID = YOUR_SSID;
@@ -799,12 +665,9 @@ bool getSSIDInfo()
 
   if (SSID == "" || SSID_PASS == "" || HOST_NAME == "")
   {
-    prtln("Wifi SETTINGS read ERROR");
+    dbPrtln("Wifi SETTINGS read ERROR");
     return false;
   }
-  prtln("Wifi SETTINGS.....  OK");
-  // prtln("SSDI = " + SSID);
-  // prtln("SSID_PASS = " + SSID_PASS );
-  // prtln("HOST_NAME = " + HOST_NAME);
+  dbPrtln("Wifi SETTINGS.....  OK");
   return true;
 }

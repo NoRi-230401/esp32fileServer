@@ -1,5 +1,5 @@
 // *******************************************************
-//  m5stack-fileServer          by NoRi 2025-04-15
+//  esp32fileServer          by NoRi 2025-08-01
 // -------------------------------------------------------
 // fileServer.cpp
 // *******************************************************
@@ -47,7 +47,7 @@ extern void LFdir_flserverSetup();
 // -------------------------------------------------------
 
 String SSID, SSID_PASS, IP_ADDR;
-String HOST_NAME = "esp32FilServer";
+String HOST_NAME;
 bool SD_ENABLE, LittleFS_ENABLE,SPIFFS_ENABLE;
 const String HOME_IMG = "/homeImg.gif";
 
@@ -78,18 +78,28 @@ bool setupServer()
   // NTP Server config
   configTime(NTP_GMT_OFFSET, NTP_DAYLIGHT_OFFSET, NTP_SVR1, NTP_SVR2);
 
+  // check RTC enable
+#ifdef M5STACK_DEVICE
+  if (RTC_ENABLE = M5.Rtc.isEnabled())
+  {
+    dbPrtln("RTC is enable");
+  }
+  else
+  {
+    dbPrtln("RTC is disable");
+    RTC_ADJUST_ON = false;
+  }
+#endif
+
   if (!fileServerStart())
   {
     prtln("fileServer ..  NG");
     return false;
   }
   prtln("fileServer ..  OK");
-  // prtln("HOST_NAME = " + HOST_NAME);
   TM_SETUP_DONE = millis();
   return true;
 }
-
-
 
 String HTML_Header()
 {
@@ -747,10 +757,12 @@ void Display_System_Info()
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
 
-  // if (RTC_ENABLE)
-  //   webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
-  // else
+  #ifdef M5STACK_DEVICE
+  if (RTC_ENABLE)
+    webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
+  else
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>　**　disable　**　</td></tr>";
+  #endif
 
   webpage += "<tr><td>Sync with NTP server</td><td>" + getTmNTP() + "</td></tr>";
   webpage += "</table> ";
@@ -762,8 +774,6 @@ void Display_System_Info()
 
 bool fileServerStart()
 {
-  // Serial.println(__FILE__);
-
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             {
   Serial.println("Home Page...");

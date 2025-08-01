@@ -1,5 +1,5 @@
 // *******************************************************
-//  m5stack-fileServer          by NoRi 2025-04-15
+//  esp32fileServer          by NoRi 2025-08-01
 // -------------------------------------------------------
 // SD_handler.cpp
 // *******************************************************
@@ -43,7 +43,7 @@ String SdPath = "/";
 
 void SD_flServerSetup()
 {
-  Serial.println(__FILE__);
+  // Serial.println(__FILE__);
 
   server.on("/SD_download", HTTP_GET, [](AsyncWebServerRequest *request)
             {
