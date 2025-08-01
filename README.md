@@ -82,14 +82,14 @@ const String YOUR_HOST_NAME = "esp32fileServer";
 
  **Check the Serial Monitor**: After flashing, open the Serial Monitor (Baud rate: 115200) to see the WiFi connection status and IP address.
 
-    ```
+```
     - esp32fileServer -
     WiFi    .....  OK
 
     IP: 192.168.x.x
     SV: esp32fileServer
     *** setup() done! ***
-    ```
+```
 
 
 ---
@@ -124,7 +124,7 @@ It uses a responsive design that adjusts to optimally fit the screen width.
 *   **Web Interface (Responsive Design):**
 
     *   **File/Directory Listing:**
-        *   SD Card: Displays the contents of the current directory (files and subdirectories).
+        *   LittleFS/SD Card: Displays the contents of the current directory (files and subdirectories).
         *   SPIFFS: Displays a list of files in the root directory.
         *   Displays file name and size.
     *   **File Operations:**

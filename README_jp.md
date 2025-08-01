@@ -84,14 +84,14 @@ const String YOUR_HOST_NAME = "esp32fileServer";
 
  **シリアルモニターの確認**: 書き込み後、シリアルモニター（ボーレート: 115200）を開くと、WiFiへの接続状況とIPアドレスが表示されます。
 
-    ```
+```
     - esp32fileServer -
     WiFi    .....  OK
 
     IP: 192.168.x.x
     SV: esp32fileServer
     *** setup() done! ***
-    ```
+```
 
 
 ---
@@ -125,7 +125,7 @@ const String YOUR_HOST_NAME = "esp32fileServer";
 *   **Webインターフェース (レスポンシブデザイン):**
 
     *   **ファイル/ディレクトリ一覧表示:**
-        *   SDカード: カレントディレクトリの内容 (ファイルとサブディレクトリ) を表示。
+        *   LittleFS/SDカード: カレントディレクトリの内容 (ファイルとサブディレクトリ) を表示。
         *   SPIFFS: ルートにあるファイル一覧を表示。
         *   ファイル名、サイズを表示。
     *   **ファイル操作:**
