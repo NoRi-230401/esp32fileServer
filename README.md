@@ -8,7 +8,7 @@
 
 ### 1. Overview
 
-This is software that transforms general-purpose ESP32-based development boards and M5Stack devices into a **Web File Server** operating on a WiFi network. It enables you to manage files (list, upload, download, delete, and view images, audio, text files, etc.) on `LittleFS`, `SPIFFS`, or an `SD` card through a web browser.
+This is software that transforms general-purpose `ESP32-based development boards` and `M5Stack devices` into a **Web File Server** operating on a WiFi network. It enables you to manage files (list, upload, download, delete, and view images, audio, text files, etc.) on `LittleFS`, `SPIFFS`, or an `SD` card through a web browser.
 
 **Main Purpose:**
 
