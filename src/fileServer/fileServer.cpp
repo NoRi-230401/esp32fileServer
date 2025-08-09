@@ -48,7 +48,7 @@ extern void LFdir_flserverSetup();
 
 String SSID, SSID_PASS, IP_ADDR;
 String HOST_NAME;
-bool SD_ENABLE, LittleFS_ENABLE,SPIFFS_ENABLE;
+bool SD_ENABLE, LittleFS_ENABLE, SPIFFS_ENABLE;
 const String HOME_IMG = "/homeImg.gif";
 
 // NTP connection information.
@@ -130,9 +130,9 @@ String HTML_Header()
   page += "　";
   page += "<input type='button' value='Reboot' onclick='confirmR();'>";
   page += "　";
-  #ifdef M5STACK_DEVICE
+#ifdef M5STACK_DEVICE
   page += "<input type='button' value='PowOff' onclick='confirmP();'>";
-  #endif
+#endif
   page += "</div>";
   page += "<br>";
 
@@ -529,6 +529,41 @@ String HTML_Style()
   return page;
 }
 
+#include "esp_mac.h" // required - exposes esp_mac_type_t
+String getDefaultMacAddress()
+{
+
+  String mac = "";
+
+  unsigned char mac_base[6] = {0};
+
+  if (esp_efuse_mac_get_default(mac_base) == ESP_OK)
+  {
+    char buffer[18]; // 6*2 characters for hex + 5 characters for colons + 1 character for null terminator
+    sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X", mac_base[0], mac_base[1], mac_base[2], mac_base[3], mac_base[4], mac_base[5]);
+    mac = buffer;
+  }
+
+  return mac;
+}
+
+String getInterfaceMacAddress(esp_mac_type_t interface)
+{
+
+  String mac = "";
+
+  unsigned char mac_base[6] = {0};
+
+  if (esp_read_mac(mac_base, interface) == ESP_OK)
+  {
+    char buffer[18]; // 6*2 characters for hex + 5 characters for colons + 1 character for null terminator
+    sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X", mac_base[0], mac_base[1], mac_base[2], mac_base[3], mac_base[4], mac_base[5]);
+    mac = buffer;
+  }
+
+  return mac;
+}
+
 void Display_System_Info()
 {
   webpage = HTML_Header();
@@ -566,7 +601,7 @@ void Display_System_Info()
     webpage += "</tr>";
     webpage += "</table>";
     webpage += "<br><br>";
-	}
+  }
 
   else if (SPIFFS_ENABLE)
   {
@@ -721,21 +756,27 @@ void Display_System_Info()
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
   //-------------------
-  char buf[256];
-  uint8_t mac0[6];
-  uint64_t chipid;
-  esp_read_mac(mac0, ESP_MAC_WIFI_STA);
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
-  webpage += "<tr><td>WiFi STAtion MAC (default)</td><td>" + String(buf) + "</td></tr>";
-  esp_read_mac(mac0, ESP_MAC_WIFI_SOFTAP);
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
-  webpage += "<tr><td>WiFi softAP MAC</td><td>" + String(buf) + "</td></tr>";
-  esp_read_mac(mac0, ESP_MAC_BT);
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
-  webpage += "<tr><td>Bluetooth MAC</td><td>" + String(buf) + "</td></tr>";
-  esp_read_mac(mac0, ESP_MAC_ETH);
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
-  webpage += "<tr><td>Ethernet MAC</td><td>" + String(buf) + "</td></tr>";
+  webpage += "<tr><td>WiFi MAC (default)</td><td>" + getDefaultMacAddress() + "</td></tr>";
+  webpage += "<tr><td>WiFi Station</td><td>" + getInterfaceMacAddress(ESP_MAC_WIFI_STA) + "</td></tr>";
+  webpage += "<tr><td>WiFi Soft-AP</td><td>" + getInterfaceMacAddress(ESP_MAC_WIFI_SOFTAP) + "</td></tr>";
+  webpage += "<tr><td>Bluetooth</td><td>" + getInterfaceMacAddress(ESP_MAC_BT) + "</td></tr>";
+  webpage += "<tr><td>Ethernet</td><td>" + getInterfaceMacAddress(ESP_MAC_ETH) + "</td></tr>";
+
+  // char buf[256];
+  // uint8_t mac0[6];
+  // uint64_t chipid;
+  // esp_read_mac(mac0, ESP_MAC_WIFI_STA);
+  // sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
+  // webpage += "<tr><td>WiFi STAtion MAC (default)</td><td>" + String(buf) + "</td></tr>";
+  // esp_read_mac(mac0, ESP_MAC_WIFI_SOFTAP);
+  // sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
+  // webpage += "<tr><td>WiFi softAP MAC</td><td>" + String(buf) + "</td></tr>";
+  // esp_read_mac(mac0, ESP_MAC_BT);
+  // sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
+  // webpage += "<tr><td>Bluetooth MAC</td><td>" + String(buf) + "</td></tr>";
+  // esp_read_mac(mac0, ESP_MAC_ETH);
+  // sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
+  // webpage += "<tr><td>Ethernet MAC</td><td>" + String(buf) + "</td></tr>";
   //-------------------
   webpage += "</table>";
   webpage += "<br><br>";
@@ -757,12 +798,12 @@ void Display_System_Info()
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
 
-  #ifdef M5STACK_DEVICE
+#ifdef M5STACK_DEVICE
   if (RTC_ENABLE)
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
   else
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>　**　disable　**　</td></tr>";
-  #endif
+#endif
 
   webpage += "<tr><td>Sync with NTP server</td><td>" + getTmNTP() + "</td></tr>";
   webpage += "</table> ";
@@ -839,7 +880,7 @@ void notFound(AsyncWebServerRequest *request)
 {
   Serial.println("notFound func : " + request->url());
 
-  if(LittleFS_ENABLE)
+  if (LittleFS_ENABLE)
   {
     if (LF_notFound(request))
       return;

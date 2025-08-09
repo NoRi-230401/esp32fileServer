@@ -11,7 +11,9 @@ uint16_t Esp2Class::getChipFullRevision()
 {
   esp_chip_info_t chip_info;
   esp_chip_info(&chip_info);
-  return chip_info.full_revision;
+  // return chip_info.full_revision;
+  return chip_info.revision;
+  
 };
 
 String Esp2Class::getChipFullRevisionStr()
