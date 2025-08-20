@@ -3,9 +3,9 @@
 // -------------------------------------------------------
 //  m5stack-device.cpp
 // *******************************************************
+#include "fileServer.h"
 #ifdef M5STACK_DEVICE
 //-------------------------------------------------------------
-#include "fileServer.h"
 #include <M5StackUpdater.h>
 #if defined(CARDPUTER)
 SPIClass SPI2;
@@ -14,7 +14,7 @@ SPIClass SPI2;
 void adjustRTC();
 String getTmRTC();
 void POWER_OFF();
-bool SD_begin();
+
 void m5stack_begin();
 void SDU_lobby();
 
@@ -59,32 +59,6 @@ void POWER_OFF()
   }
 }
 
-bool SD_begin()
-{
-  int i = 0;
-#if defined(CARDPUTER)
-  // ------------- CARDPUTER -------------
-  while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2) && i < 10)
-#else
-  // ----------- Core2 and CoreS3 ----------
-  while (!SD.begin(GPIO_NUM_4, SPI, 25000000) && i < 10)
-#endif
-  {
-    delay(500);
-    i++;
-  }
-
-  if (i >= 10)
-  {
-    Serial.println("ERR: SD begin erro...");
-    return false;
-  }
-
-  if (!SD_cardInfo())
-    return false;
-
-  return true;
-}
 
 // vsCode terminal cannot get serial data before 5 sec...!
 // #define DEBUG_PLATFORMIO
@@ -125,9 +99,6 @@ void m5stack_begin()
   M5.Display.setTextScroll(true);
   M5.Display.setCursor(0, 0);
 
-#endif
-#ifdef DEBUG_PLATFORMIO
-  delay(5000);
 #endif
   SD_ENABLE = SD_begin();
 }

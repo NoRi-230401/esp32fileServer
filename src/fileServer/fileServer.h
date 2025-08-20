@@ -3,8 +3,8 @@
 // -------------------------------------------------------
 // fileServer.h
 // *******************************************************
-#ifndef _M5STACK_FILE_SERVER_H
-#define _M5STACK_FILE_SERVER_H
+#ifndef _FILE_SERVER_H
+#define _FILE_SERVER_H
 // -------------------------------------------------------
 #include <Arduino.h>
 #include <WiFi.h>
@@ -19,6 +19,7 @@
 #include <SD.h>
 #include <nvs.h>
 #include <time.h>
+#include "../esp32fileServer_my_setup.h"
 #ifdef M5STACK_DEVICE
 #ifndef CARDPUTER
   #include <M5Unified.h>
@@ -94,7 +95,6 @@ extern void sendReq(int reqNo);
 
 // -------------------------------------------------------
 extern const String PROG_NAME, VERSION, GITHUB_URL;
-extern const String YOUR_SSID, YOUR_SSID_PASS, YOUR_HOST_NAME;
 extern String SSID, SSID_PASS, HOST_NAME, IP_ADDR;
 
 extern const String WIFI_TXT;
@@ -108,4 +108,4 @@ extern uint32_t TM_SETUP_DONE;
 extern uint32_t TM_RTC_ADJUST;
 extern uint32_t SHUTDOWN_TM_SEC;
 // -------------------------------------------------------
-#endif // _M5STACK_FILE_SERVER_H
+#endif // _FILE_SERVER_H

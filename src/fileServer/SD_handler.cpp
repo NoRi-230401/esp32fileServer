@@ -5,6 +5,7 @@
 // *******************************************************
 #include "fileServer.h"
 // -------------------------------------------------------
+bool SD_begin();
 void SD_flServerSetup();
 void SD_Dir(AsyncWebServerRequest *request);
 void SD_Directory();
@@ -40,6 +41,48 @@ uint32_t SD_startTime, SD_downloadTime = 1, SD_uploadTime = 1;
 uint64_t SD_downloadSize, SD_uploadSize;
 uint32_t SD_numfiles;
 String SdPath = "/";
+
+#ifndef M5STACK_DEVICE
+SPIClass spiSD(FSPI);
+// --- example for ESC32-S3-devModule -----
+// constexpr int8_t SD_CS = 4;
+// constexpr int8_t SD_MOSI = 5;
+// constexpr int8_t SD_MISO = 6;
+// constexpr int8_t SD_SCK = 7;
+#endif
+
+bool SD_begin()
+{
+  int i = 0;
+
+#ifdef M5STACK_DEVICE
+#if defined(CARDPUTER)
+  // ------------- CARDPUTER -------------
+  while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2) && i < 10)
+#else
+  // ----------- Core2 and CoreS3 ----------
+  while (!SD.begin(GPIO_NUM_4, SPI, 25000000) && i < 10)
+#endif
+#else
+  spiSD.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK,MISO,MOSI,CS
+  while (!SD.begin(SD_CS, spiSD) && i < 10)
+#endif
+  {
+    delay(500);
+    i++;
+  }
+
+  if (i >= 10)
+  {
+    Serial.println("ERR: SD begin erro...");
+    return false;
+  }
+
+  if (!SD_cardInfo())
+    return false;
+
+  return true;
+}
 
 void SD_flServerSetup()
 {
@@ -152,7 +195,7 @@ void SD_Directory()
   SD_Filenames.clear();
   if (SdPath == "")
     SdPath = "/";
-  Serial.println("SdPath = " + SdPath);
+  // Serial.println("SdPath = " + SdPath);
   File root = SD.open(SdPath, "r");
 
   if (root)
@@ -918,7 +961,7 @@ void SDdir_Handle_chdir(String encoded_filename)
   { // ディレクトリが存在するか確認
     dir.close();
     SdPath = targetPath;
-    Serial.println("Successfully changed SdPath = " + SdPath);
+    // Serial.println("Successfully changed SdPath = " + SdPath);
     webpage += "<h3>Directory changed to '" + SdPath + "'</h3>";
     webpage += "<a href='/SD_dir'>[Show Content]</a><br><br>";
   }

@@ -152,7 +152,7 @@ void LF_Directory()
   LF_Filenames.clear();
   if (LfPath == "")
     LfPath = "/";
-  Serial.println("LfPath = " + LfPath);
+  // Serial.println("LfPath = " + LfPath);
   File root = LittleFS.open(LfPath, "r");
 
   if (root)
@@ -918,7 +918,7 @@ void LFdir_Handle_chdir(String encoded_filename)
   { // ディレクトリが存在するか確認
     dir.close();
     LfPath = targetPath;
-    Serial.println("Successfully changed LfPath = " + LfPath);
+    // Serial.println("Successfully changed LfPath = " + LfPath);
     webpage += "<h3>Directory changed to '" + LfPath + "'</h3>";
     webpage += "<a href='/LF_dir'>[Show Content]</a><br><br>";
   }
@@ -1131,7 +1131,7 @@ void LFdir_DirList()
 
   if (LfPath == "")
     LfPath = "/";
-  Serial.println("Listing directories in: " + LfPath);
+  // Serial.println("Listing directories in: " + LfPath);
   File root = LittleFS.open(LfPath, "r");
 
   if (root && root.isDirectory()) // ディレクトリとして開けるか確認

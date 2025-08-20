@@ -26,7 +26,7 @@ void STOP();
 void REBOOT();
 bool SPIFFS_begin();
 void SPIFFS_start();
-bool SD_begin();
+// bool SD_begin();
 void SD_start();
 bool SD_cardInfo(void);
 bool getWiFiInfo();
