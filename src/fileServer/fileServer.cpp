@@ -5,11 +5,23 @@
 // *******************************************************
 #include "fileServer.h"
 #include "Esp2.h"
+#include <esp_sntp.h>
+#include <Wire.h>
+#include <TimeLib.h>
+#include <time.h>
 
+#ifdef RTC_MODULE_DS3231
+#include <DS3232RTC.h> // DS3232、DS3231用ライブラリ
+// DS3232RTC myRTC;
+DS3232RTC myRTC(WIRE);
+#endif
+
+bool NTP_begin();
+void adjustDevTm();
 bool setupServer();
 String HTML_Header();
 String HTML_Style();
-void Display_System_Info();
+void System_Info();
 bool fileServerStart();
 void notFound(AsyncWebServerRequest *request);
 void Page_Not_Found();
@@ -19,7 +31,13 @@ String getContentType(String filenametype);
 String EncryptionType(wifi_auth_mode_t encryptionType);
 bool compareFileinfo(const fileinfo &a, const fileinfo &b);
 uint64_t getFileSize(int flType, String filename);
+String getTmDev();
+String strTmInfo(struct tm &timeInfo);
+void adjustRTC();
+String getTmRTC();
+void DS3231_begin();
 // -------------------------------------------------------
+// extern DS3232RTC myRTC;
 extern bool SPIFFS_notFound(AsyncWebServerRequest *request);
 extern void SPIFFS_flServerSetup();
 extern void SPIFFS_Directory();
@@ -48,14 +66,9 @@ extern void LFdir_flserverSetup();
 
 String SSID, SSID_PASS, IP_ADDR;
 String HOST_NAME;
-bool SD_ENABLE, LittleFS_ENABLE, SPIFFS_ENABLE;
-const String HOME_IMG = "/homeImg.gif";
 
-// NTP connection information.
-#define NTP_SVR1 "ntp.nict.jp"         // NTP server1
-#define NTP_SVR2 "ntp.jst.mfeed.ad.jp" // NTP server2
-#define NTP_GMT_OFFSET 9 * 3600L       // Sec  : GMT offset
-#define NTP_DAYLIGHT_OFFSET 0          // Sec  : daylight offset
+bool LittleFS_ENABLE, SPIFFS_ENABLE;
+const String HOME_IMG = "/homeImg.gif";
 
 // RTC adjust
 uint32_t TM_RTC_ADJUST = 10 * 1000L; // mSec : adjust after setup()
@@ -66,6 +79,59 @@ AsyncWebServer server(80);
 String webpage;
 Esp2Class ESP2;
 
+bool NTP_begin()
+{
+  prtln("init DevTm = " + getTmDev());
+
+  configTime(NTP_GMT_OFFSET, NTP_DAYLIGHT_OFFSET, NTP_SVR1, NTP_SVR2);
+  prtln("wait for NTP Server synchronizing...");
+  delay(500);
+  // prtln(getTmDev());
+
+  int i = 0;
+  while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET)
+  {
+    prt(">"); // proceeding
+    delay(500);
+    i++;
+
+    if (i >= 20) // timeout : 10sec
+    {
+      prtln("\n cannot synchronize with NTP");
+      return false;
+    }
+  }
+  prtln("\nsynchronized");
+  
+  // Device time is syncronaized with NTP server
+  struct tm timeInfo;
+  while (!getLocalTime(&timeInfo, 1000U))
+    delay(10);
+
+  setTime(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec, timeInfo.tm_mday, timeInfo.tm_mon + 1, timeInfo.tm_year + 1900);
+  prtln("NTP localTime = " + strTmInfo(timeInfo));
+  prtln("DevTm adjusted = " + getTmDev());
+
+  return true;
+}
+
+void adjustDevTm()
+{
+#ifdef RTC_MODULE
+#ifdef RTC_MODULE_DS3231
+  prtln("prev Dev_time = " + getTmDev());
+
+  tmElements_t tm;
+  myRTC.read(tm); // read time from RTC
+  prtln("RTC_time = " + getTmRTC());
+
+  // adjust device time from RTC
+  setTime(tm.Hour, tm.Minute, tm.Second, tm.Day, tm.Month, tm.Year + 1970);
+  prtln("adjusted Dev_time = " + getTmDev());
+#endif 
+#endif 
+}
+
 bool setupServer()
 {
   if (!mdnsStart())
@@ -75,28 +141,13 @@ bool setupServer()
   }
   prtln("mDNS    .....  OK");
 
-  // NTP Server config
-  configTime(NTP_GMT_OFFSET, NTP_DAYLIGHT_OFFSET, NTP_SVR1, NTP_SVR2);
-
-  // check RTC enable
-#ifdef M5STACK_DEVICE
-  if (RTC_ENABLE = M5.Rtc.isEnabled())
-  {
-    dbPrtln("RTC is enable");
-  }
-  else
-  {
-    dbPrtln("RTC is disable");
-    RTC_ADJUST_ON = false;
-  }
-#endif
-
   if (!fileServerStart())
   {
     prtln("fileServer ..  NG");
     return false;
   }
   prtln("fileServer ..  OK");
+
   TM_SETUP_DONE = millis();
   return true;
 }
@@ -564,7 +615,7 @@ String getInterfaceMacAddress(esp_mac_type_t interface)
   return mac;
 }
 
-void Display_System_Info()
+void System_Info()
 {
   webpage = HTML_Header();
   webpage += "<h3>Status and System Information</h3>";
@@ -797,15 +848,13 @@ void Display_System_Info()
   webpage += "<h4>Clock</h4>";
   webpage += "<table class='center'>";
   webpage += "<tr><th>parameter</th><th>value</th></tr>";
-
-#ifdef M5STACK_DEVICE
+  webpage += "<tr><td>Device Current Time</td><td>" + getTmDev() + "</td></tr>";
+#ifdef RTC_MODULE
   if (RTC_ENABLE)
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>" + getTmRTC() + "</td></tr>";
   else
     webpage += "<tr><td>Real Time Clock (RTC)</td><td>　**　disable　**　</td></tr>";
 #endif
-
-  webpage += "<tr><td>Sync with NTP server</td><td>" + getTmNTP() + "</td></tr>";
   webpage += "</table> ";
   webpage += "<br><br>";
 
@@ -823,7 +872,7 @@ bool fileServerStart()
 
   server.on("/system", HTTP_GET, [](AsyncWebServerRequest *request)
             {
-  Display_System_Info();
+  System_Info();
   request->send(200, "text/html", webpage); });
 
   if (LittleFS_ENABLE)
@@ -947,7 +996,7 @@ String HTML_Footer()
   String page;
   page += "<br>";
   page += "<footer>";
-  page += "<p class='ps'><i>" + getTmNTP() + "　<a href=" + GITHUB_URL + " style='text-decoration:none;' target='_blank'>" + PROG_NAME + "</a>　" + VERSION + "</i></p>";
+  page += "<p class='ps'><i>" + getTmDev() + "　<a href=" + GITHUB_URL + " style='text-decoration:none;' target='_blank'>" + PROG_NAME + "</a>　" + VERSION + "</i></p>";
   page += "</footer>";
   page += "</body>";
   page += "</html>";
@@ -1139,4 +1188,77 @@ uint64_t getFileSize(int flType, String filename)
     Serial.println("getFileSize Err: invalid flType");
     return 0;
   }
+}
+
+void adjustRTC()
+{
+  // NTP server -> DeviceLocalTim -> RTC
+
+  struct tm tmInfo;
+  // NTPサーバーから時刻を取得
+  while (!getLocalTime(&tmInfo, 1000U))
+    delay(10);
+
+  // setTime for Device Local time
+  setTime(tmInfo.tm_hour, tmInfo.tm_min, tmInfo.tm_sec, tmInfo.tm_mday, tmInfo.tm_mon + 1, tmInfo.tm_year + 1900);
+
+  // adjust RTC Module time
+#ifdef M5STACK_DEVICE
+  M5.Rtc.setDateTime(tmInfo);
+#else
+#ifdef RTC_MODULE_DS3231
+  myRTC.set(now());
+#endif
+#endif
+
+  prtln("RTC adjusted = " + strTmInfo(tmInfo));
+}
+
+String getTmRTC()
+{
+  char buf[60];
+  const char *wd[] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+
+#ifdef M5STACK_DEVICE
+  auto dt = M5.Rtc.getDateTime();
+  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.date.year, dt.date.month, dt.date.date, wd[dt.date.weekDay], dt.time.hours, dt.time.minutes, dt.time.seconds);
+#else
+#ifdef RTC_MODULE_DS3231
+  tmElements_t dt;
+  myRTC.read(dt); // RTCから時刻取得
+  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.Year + 1970, dt.Month, dt.Day, wd[dt.Wday - 1], dt.Hour, dt.Minute, dt.Second);
+#endif
+#endif
+
+  return String(buf);
+}
+
+String getTmDev()
+{
+  char buf[60];
+  const char *wd[] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+
+  snprintf(buf, sizeof(buf), "%04d/%02d/%02d(%s) %02d:%02d:%02d", year(), month(), day(), wd[weekday() - 1], hour(), minute(), second());
+  return String(buf);
+}
+
+String strTmInfo(struct tm &timeInfo)
+{
+  char buf[60];
+  const char *wd[] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+
+  snprintf(buf, sizeof(buf), "%04d/%02d/%02d(%s) %02d:%02d:%02d",
+           timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday,
+           wd[timeInfo.tm_wday], timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+
+  return String(buf);
+}
+
+void DS3231_begin()
+{
+#ifdef RTC_MODULE_DS3231
+  WIRE.begin(SDA_PIN, SCL_PIN);
+  // Wire1.begin(SDA_PIN, SCL_PIN);
+  myRTC.begin();
+#endif
 }

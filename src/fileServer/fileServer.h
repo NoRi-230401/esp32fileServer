@@ -19,12 +19,13 @@
 #include <SD.h>
 #include <nvs.h>
 #include <time.h>
+
 #include "../esp32fileServer_my_setup.h"
 #ifdef M5STACK_DEVICE
 #ifndef CARDPUTER
-  #include <M5Unified.h>
+#include <M5Unified.h>
 #else
-  #include <M5Cardputer.h>
+#include <M5Cardputer.h>
 #endif
 #endif
 
@@ -39,6 +40,8 @@ extern void SDU_lobby();
 extern void SD_start();
 extern void LittleFS_start();
 extern void SPIFFS_start();
+extern bool NTP_begin();
+extern void adjustDevTm();
 extern bool setupServer();
 extern void requestManage();
 extern void STOP();
@@ -51,6 +54,7 @@ extern void SDU_lobby();
 extern bool SD_begin();
 extern bool SD_cardInfo(void);
 extern String strTmInfo(struct tm &timeInfo);
+extern void DS3231_begin();
 
 typedef struct
 {
@@ -85,7 +89,7 @@ extern String getContentType(String filenametype);
 extern bool compareFileinfo(const fileinfo &a, const fileinfo &b);
 extern String ConvBytesUnits(uint64_t bytes, int dp, int unit = UNIT_AUTO);
 extern String getTmRTC();
-extern String getTmNTP();
+extern String getTmDev();
 extern String urlEncode(const String &input);
 extern String urlDecode(const String &input);
 extern bool getWiFiSettings(int flType, const String filename);
@@ -99,7 +103,8 @@ extern String SSID, SSID_PASS, HOST_NAME, IP_ADDR;
 
 extern const String WIFI_TXT;
 extern const bool SD_USE, SPIFFS_USE, LittleFS_USE;
-extern bool SD_ENABLE, LittleFS_ENABLE, SPIFFS_ENABLE;
+extern bool SD_ENABLE;
+extern bool LittleFS_ENABLE, SPIFFS_ENABLE;
 extern bool RTC_ENABLE;
 extern String SdPath, LfPath;
 

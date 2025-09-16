@@ -4,11 +4,16 @@
 // esp32fileServer.cpp
 // *******************************************************
 #include "fileServer/fileServer.h"
+#include <TimeLib.h>
+#include <time.h> // Timeライブラリ
 //---------------------------------------------------------------------------
 const String PROG_NAME = "esp32fileServer";
 const String VERSION = "v1.06";
 const String GITHUB_URL = "https://github.com/NoRi-230401/esp32fileServer";
 const String WIFI_TXT = "/wifi.txt";
+
+bool SD_ENABLE = false;
+bool NTP_SYNC = false;
 
 #ifdef FILES_LITTLEFS
 const bool LittleFS_USE = true; // (default) LittleFS instead of SPIFFS
@@ -24,11 +29,13 @@ const bool SD_USE = true;
 const bool SD_USE = false;
 #endif
 
-#ifdef RTC_BUILT_IN
-bool RTC_ADJUST_ON = true;
-#else
 bool RTC_ADJUST_ON = false;
-#endif
+// #ifdef RTC_MODULE
+// bool RTC_ADJUST_ON = true;
+// #else
+// bool RTC_ADJUST_ON = false;
+// #endif
+
 //---------------------------------------------------------------------------
 
 // vsCode terminal cannot get serial data before 5 sec...!
@@ -36,7 +43,7 @@ bool RTC_ADJUST_ON = false;
 
 void FLSV_setup();
 void FLSV_loop();
-
+String getCurrentDateTime();
 
 void FLSV_setup()
 {
@@ -50,12 +57,12 @@ void FLSV_setup()
 #else
   Serial.begin(115200);
   delay(1000);
+  prtln("- " + PROG_NAME + " -");
 #ifdef FILES_SD
   SD_ENABLE = SD_begin();
-  if(SD_ENABLE)
+  if (SD_ENABLE)
     SD_start();
 #endif
-  prtln("- " + PROG_NAME + " -");
 #endif
 
   if (LittleFS_USE)
@@ -67,23 +74,55 @@ void FLSV_setup()
   {
     IP_ADDR = WiFi.localIP().toString();
     SSID = WiFi.SSID();
-    prt("\n");
-    dbPrtln("*** Connected ***");
-    dbPrtln("SSID:" + SSID);
+    prtln("\nwife Connected!");
+    prtln("SSID:" + SSID);
     prtln("WiFi    .....  OK");
   }
   else
   {
-    prtln("WiFi    .....  NG");
+    prtln("\nWiFi    .....  NG");
     STOP();
+  }
+
+// check RTC enable
+#ifdef M5STACK_DEVICE
+  RTC_ENABLE = M5.Rtc.isEnabled();
+#else
+#ifdef RTC_MODULE
+  RTC_ENABLE = true;
+#else
+  RTC_ENABLE = false;
+#endif
+#endif
+
+  if (RTC_ENABLE)
+  {
+    prtln("RTC is enable");
+#ifdef RTC_MODULE_DS3231
+    DS3231_begin();
+#endif
+  }
+  else
+  {
+    prtln("RTC is disable");
+  }
+
+  NTP_SYNC = NTP_begin();
+  if (NTP_SYNC && RTC_ENABLE)
+  { // RTC and DevTm syncronized with NTP
+    adjustRTC();
+  }
+  else if (!NTP_SYNC && RTC_ENABLE)
+  { // DevTm syncronized with RTC
+    adjustDevTm();
   }
 
   if (!setupServer())
     STOP();
 
-  prtln("\nIP: " + IP_ADDR);
+  prtln("IP: " + IP_ADDR);
   prtln("SV: " + HOST_NAME);
-  dbPrtln("* fileServer setup done!*");
+  // prtln("** esp32fileServer setup done!**");
 }
 
 void FLSV_loop()
@@ -91,3 +130,7 @@ void FLSV_loop()
   requestManage();
 }
 
+String getCurrentDateTime()
+{
+  return getTmDev();
+}

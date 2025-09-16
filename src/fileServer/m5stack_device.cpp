@@ -11,38 +11,12 @@
 SPIClass SPI2;
 #endif
 
-void adjustRTC();
-String getTmRTC();
 void POWER_OFF();
 
 void m5stack_begin();
 void SDU_lobby();
 
 // -------------------------------------------------------
-
-void adjustRTC()
-{
-  struct tm tmInfo;
-
-  while (!getLocalTime(&tmInfo, 1000U))
-    delay(10);
-
-  M5.Rtc.setDateTime(tmInfo);
-  prtln("RTC adjusted");
-  dbPrtln(strTmInfo(tmInfo));
-}
-
-String getTmRTC()
-{
-  char buf[60];
-  static constexpr const char *const wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
-  auto dt = M5.Rtc.getDateTime();
-  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.date.year, dt.date.month, dt.date.date, wd[dt.date.weekDay], dt.time.hours, dt.time.minutes, dt.time.seconds);
-
-  return String(buf);
-
-  return "";
-}
 
 void POWER_OFF()
 {

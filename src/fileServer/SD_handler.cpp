@@ -5,6 +5,11 @@
 // *******************************************************
 #include "fileServer.h"
 // -------------------------------------------------------
+#if defined(CARDPUTER)
+extern SPIClass SPI2;
+#endif
+
+
 bool SD_begin();
 void SD_flServerSetup();
 void SD_Dir(AsyncWebServerRequest *request);

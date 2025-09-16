@@ -4,6 +4,7 @@
 // fs_util.cpp
 // *******************************************************
 #include "fileServer.h"
+#include <esp_sntp.h>
 
 void prt(String message);
 void prtln(String message);
@@ -15,8 +16,6 @@ bool wifiConnect01();
 bool wifiConnect02();
 bool wifiConnect03();
 bool mdnsStart(void);
-String getTmNTP();
-String strTmInfo(struct tm &timeInfo);
 bool getWiFiSettings(int flType, const String filename);
 String urlEncode(const String &input);
 String urlDecode(const String &input);
@@ -26,7 +25,6 @@ void STOP();
 void REBOOT();
 bool SPIFFS_begin();
 void SPIFFS_start();
-// bool SD_begin();
 void SD_start();
 bool SD_cardInfo(void);
 bool getWiFiInfo();
@@ -258,33 +256,6 @@ bool mdnsStart(void)
   return true;
 }
 
-String getTmNTP()
-{
-  struct tm Ldt;
-  for (int i = 0; i < 5; i++)
-  {
-    if (getLocalTime(&Ldt, 1000U))
-      return strTmInfo(Ldt);
-
-    delay(10);
-  }
-
-  String errStr = "2025/04/01(Tue) 00:00:00";
-  return errStr;
-}
-
-String strTmInfo(struct tm &timeInfo)
-{
-  char buf[60];
-  static constexpr const char *const wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
-
-  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d",
-          timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday,
-          wd[timeInfo.tm_wday], timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-
-  return String(buf);
-}
-
 bool getWiFiSettings(int flType, const String filename)
 {
   File fs;
@@ -476,13 +447,14 @@ String urlDecode(const String &input)
 void requestManage()
 {
 
-#ifdef M5STACK_DEVICE
-  if (RTC_ADJUST_ON && RTC_ENABLE && (millis() - TM_SETUP_DONE > TM_RTC_ADJUST))
+  if (RTC_ENABLE)
   {
-    adjustRTC();
-    RTC_ADJUST_ON = false;
+    if (RTC_ADJUST_ON && (millis() - TM_SETUP_DONE > TM_RTC_ADJUST))
+    {
+      // adjustRTC();
+      RTC_ADJUST_ON = false;
+    }
   }
-#endif
 
   if (REQUEST_NO == REQ_NONE)
     return;
@@ -671,3 +643,71 @@ bool getWiFiInfo()
   dbPrtln("Wifi SETTINGS.....  OK");
   return true;
 }
+
+// void adjustRTC()
+// {
+//   struct tm tmInfo;
+
+//   while (!getLocalTime(&tmInfo, 1000U))
+//     delay(10);
+
+// #ifdef M5STACK_DEVICE
+//   M5.Rtc.setDateTime(tmInfo);
+// #else
+// #ifdef RTC_MODULE_DS3231
+//   Wire.begin(SDA_PIN, SCL_PIN);
+//   myRTC.begin();
+
+//   myRTC.set(now());
+// #endif
+// #endif
+
+//   prtln("RTC adjusted");
+//   dbPrtln(strTmInfo(tmInfo));
+// }
+
+// String getTmRTC()
+// {
+//   char buf[60];
+//   static constexpr const char *const wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+
+// #ifdef M5STACK_DEVICE
+//   auto dt = M5.Rtc.getDateTime();
+//   sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.date.year, dt.date.month, dt.date.date, wd[dt.date.weekDay], dt.time.hours, dt.time.minutes, dt.time.seconds);
+// #else
+// #ifdef RTC_MODULE_DS3231
+//   tmElements_t tm;
+//   myRTC.read(tm); // RTCから時刻取得
+//   sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d", dt.Year + 1970, dt.Month, dt.Day, wd[dt.Wday - 1], dt.Hour, dt.Minute, dt.Second);
+// #endif
+// #endif
+
+//   return String(buf);
+// }
+
+// String getLocalTm()
+// {
+//   struct tm Ldt;
+//   for (int i = 0; i < 5; i++)
+//   {
+//     if (getLocalTime(&Ldt, 1000U))
+//       return strTmInfo(Ldt);
+
+//     delay(10);
+//   }
+
+//   String errStr = "2025/04/01(Tue) 00:00:00";
+//   return errStr;
+// }
+
+// String strTmInfo(struct tm &timeInfo)
+// {
+//   char buf[60];
+//   static constexpr const char *const wd[7] = {"Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"};
+
+//   sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d",
+//           timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday,
+//           wd[timeInfo.tm_wday], timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+
+//   return String(buf);
+// }
