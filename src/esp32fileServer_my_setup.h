@@ -15,17 +15,17 @@
 #define YOUR_HOST_NAME "esp32fileServer"
 // -------------------------------------------------------
 
-// (Part.2) ### select file system ###
-#define FILES_LITTLEFS  // if not defined,  use SPIFFS 
-#define FILES_SD				//
+// (Part.2) ### device type ###
+// - uncomment one device type only -
+//#define CARDPUTER       // m5stack cardputer v1.0 and v1.2
+//#define CORES3          // m5stack coreS3
+//#define CORE2           // m5stack core2  
+#define ESP32_DEV_BOARD   // General-purpuse ESP32 Development Board
 // -------------------------------------------------------
 
-// (Part.3) ### select device type ###
-// if you use General-purpose ESP32 Development Boards, stay all comment
-// if you use M5STACK_DEVICE, select one
-#define CARDPUTER
-//#define CORES3
-//#define CORE2
+// (Part.3) ### use file system ###
+#define FILES_LITTLEFS  // if not defined,  use SPIFFS 
+//#define FILES_SD			// if your device type is 'ESP32_DEV_BOARD' and use SD   
 // -------------------------------------------------------
 
 // (Part.4) ### NTP SERVER ###
@@ -38,36 +38,24 @@
 
 // (Part.5) ### RTC module ###
 //  ** if you use M5STACK_DEVICE, SKIP this Part ** 
-//  Only used with General-purpuse ESP32 Development Boards
+//  Only used with General-purpuse ESP32 Development Board
 // #define RTC_MODULE
 // #define RTC_MODULE_DS3231
 // #define WIRE Wire
 // #define WIRE Wire1
-
-
 // #define SDA_PIN  16   // I2C For RTC MODULE  use: Wire1.begin(SDA_PIN, SCL_PIN);
 // #define SCL_PIN  17
-
-// #define SDA_PIN  2   // I2C For RTC MODULE  use: Wire1.begin(SDA_PIN, SCL_PIN);
-// #define SCL_PIN  1
 // -------------------------------------------------------
 
 // (Part.6) ### SPI PORT define to control SD ###
 //  ** if you use M5STACK_DEVICE, SKIP this Part ** 
-//  Only used with General-purpuse ESP32 Development Boards
-#define SD_CS    4
-#define SD_MOSI  5
-#define SD_MISO  6
-#define SD_SCK   7
+//  Only used with General-purpuse ESP32 Development Board and SD
+// #define SD_CS    4
+// #define SD_MOSI  5
+// #define SD_MISO  6
+// #define SD_SCK   7
 // -------------------------------------------------------
 
-#if defined(CARDPUTER) || defined(CORES3) || defined(CORE2)
-#define M5STACK_DEVICE
-#endif
-
-#if defined(CORES3) || defined(CORE2)
-#define RTC_MODULE
-#endif
 
 // -------------------------------------------------------
 #endif

@@ -30,12 +30,6 @@ const bool SD_USE = false;
 #endif
 
 bool RTC_ADJUST_ON = false;
-// #ifdef RTC_MODULE
-// bool RTC_ADJUST_ON = true;
-// #else
-// bool RTC_ADJUST_ON = false;
-// #endif
-
 //---------------------------------------------------------------------------
 
 // vsCode terminal cannot get serial data before 5 sec...!
@@ -122,7 +116,6 @@ void FLSV_setup()
 
   prtln("IP: " + IP_ADDR);
   prtln("SV: " + HOST_NAME);
-  // prtln("** esp32fileServer setup done!**");
 }
 
 void FLSV_loop()

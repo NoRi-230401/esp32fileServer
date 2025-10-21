@@ -58,6 +58,8 @@ SPIClass spiSD(FSPI);
 
 bool SD_begin()
 {
+#ifdef FILES_SD
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   int i = 0;
 
 #ifdef M5STACK_DEVICE
@@ -86,6 +88,8 @@ bool SD_begin()
   if (!SD_cardInfo())
     return false;
 
+#endif
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   return true;
 }
 

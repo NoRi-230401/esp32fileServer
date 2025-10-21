@@ -21,6 +21,15 @@
 #include <time.h>
 
 #include "../esp32fileServer_my_setup.h"
+
+#if defined(CARDPUTER) || defined(CORES3) || defined(CORE2)
+#define M5STACK_DEVICE
+#endif
+
+#if defined(CORES3) || defined(CORE2)
+#define RTC_MODULE
+#endif
+
 #ifdef M5STACK_DEVICE
 #ifndef CARDPUTER
 #include <M5Unified.h>
