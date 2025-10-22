@@ -32,9 +32,6 @@ const bool SD_USE = false;
 bool RTC_ADJUST_ON = false;
 //---------------------------------------------------------------------------
 
-// vsCode terminal cannot get serial data before 5 sec...!
-// #define DEBUG_PLATFORMIO
-
 void fileServer_setup();
 void fileServer_loop();
 String getCurrentDateTime();

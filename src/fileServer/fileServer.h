@@ -20,7 +20,7 @@
 #include <nvs.h>
 #include <time.h>
 
-#include "esp32fileServer_my_setup.h"
+#include "USER_SETUP.h"
 
 #if defined(CARDPUTER) || defined(CORES3) || defined(CORE2)
 #define M5STACK_DEVICE
@@ -42,6 +42,9 @@
 #include <M5Cardputer.h>
 #endif
 #endif
+
+extern String getCurrentDateTime();
+extern bool NTP_SYNC;
 
 // --- used in 'main.cpp' ----
 extern void m5stack_begin();
