@@ -3,12 +3,12 @@
 // -------------------------------------------------------
 // esp32fileServer.cpp
 // *******************************************************
-#include "fileServer/fileServer.h"
+#include "fileServer.h"
 #include <TimeLib.h>
 #include <time.h> // Timeライブラリ
 //---------------------------------------------------------------------------
 const String PROG_NAME = "esp32fileServer";
-const String VERSION = "v1.06";
+const String VERSION = "v1.07";
 const String GITHUB_URL = "https://github.com/NoRi-230401/esp32fileServer";
 const String WIFI_TXT = "/wifi.txt";
 
@@ -35,11 +35,11 @@ bool RTC_ADJUST_ON = false;
 // vsCode terminal cannot get serial data before 5 sec...!
 // #define DEBUG_PLATFORMIO
 
-void FLSV_setup();
-void FLSV_loop();
+void fileServer_setup();
+void fileServer_loop();
 String getCurrentDateTime();
 
-void FLSV_setup()
+void fileServer_setup()
 {
 #ifdef M5STACK_DEVICE
   m5stack_begin();
@@ -118,7 +118,7 @@ void FLSV_setup()
   prtln("SV: " + HOST_NAME);
 }
 
-void FLSV_loop()
+void fileServer_loop()
 {
   requestManage();
 }

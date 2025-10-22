@@ -1,14 +1,12 @@
-#include <Arduino.h>
-#include "esp32fileServer.h"
+#include "fileServer/esp32fileServer.h"
 
 void setup(void)
 {
-  FLSV_setup();
+  fileServer_setup();
 }
 
 void loop()
 {
-  FLSV_loop();
-  vTaskDelay(1);
+  fileServer_loop();
 }
 

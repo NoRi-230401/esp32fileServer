@@ -20,17 +20,22 @@
 #include <nvs.h>
 #include <time.h>
 
-#include "../esp32fileServer_my_setup.h"
+#include "esp32fileServer_my_setup.h"
 
 #if defined(CARDPUTER) || defined(CORES3) || defined(CORE2)
 #define M5STACK_DEVICE
 #endif
+
+
 
 #if defined(CORES3) || defined(CORE2)
 #define RTC_MODULE
 #endif
 
 #ifdef M5STACK_DEVICE
+#ifndef FILES_SD
+#define FILES_SD
+#endif
 #ifndef CARDPUTER
 #include <M5Unified.h>
 #else

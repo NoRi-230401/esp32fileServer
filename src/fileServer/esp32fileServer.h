@@ -8,8 +8,8 @@
 // -------------------------------------------------------
 
 #include <Arduino.h>
-extern void FLSV_setup();
-extern void FLSV_loop();
+extern void fileServer_setup();
+extern void fileServer_loop();
 extern String getCurrentDateTime();
 extern bool SD_ENABLE;
 extern bool NTP_SYNC;

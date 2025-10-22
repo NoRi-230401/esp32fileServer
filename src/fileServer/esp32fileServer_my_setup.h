@@ -17,10 +17,10 @@
 
 // (Part.2) ### device type ###
 // - uncomment one device type only -
-//#define CARDPUTER       // m5stack cardputer v1.0 and v1.2
+#define CARDPUTER       // m5stack cardputer v1.0 and v1.1
 //#define CORES3          // m5stack coreS3
 //#define CORE2           // m5stack core2  
-#define ESP32_DEV_BOARD   // General-purpuse ESP32 Development Board
+// #define ESP32_DEV_BOARD   // General-purpuse ESP32 Development Board
 // -------------------------------------------------------
 
 // (Part.3) ### use file system ###
